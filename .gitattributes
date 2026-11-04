@@ -1,0 +1,3 @@
+*.onnx binary
+*.jpg  binary
+* text=auto eol=lf

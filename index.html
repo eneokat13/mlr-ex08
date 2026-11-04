@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1411">
+<title>Leaf Classifier — live camera</title>
+<style>
+  :root{
+    --bg:#0d1411; --card:#151f19; --card2:#1b2822; --line:#2a3a32;
+    --fg:#e9f1ec; --dim:#9db0a6; --accent:#6fe3a1; --accent-dim:#2f6b4b;
+    --warn:#ffcf6b; --err:#ff8f8f; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--fg);
+    font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    padding:0 0 40px; -webkit-text-size-adjust:100%;
+  }
+  main{max-width:560px;margin:0 auto;padding:0 14px}
+  h1{font-size:1.35rem;margin:18px 0 2px;letter-spacing:.2px}
+  .sub{color:var(--dim);font-size:.9rem;margin:0 0 16px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin:0 0 14px}
+  h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--dim);margin:0 0 10px;font-weight:600}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em}
+
+  /* camera preview: a square viewport, i.e. exactly the central square the model gets */
+  .stage{position:relative;width:100%;aspect-ratio:1/1;background:#000;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+  .stage video,.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#000}
+  .stage img{display:none}
+  .stage .idle{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:.92rem;text-align:center;padding:20px}
+  .corner{position:absolute;width:22px;height:22px;border:2px solid var(--accent);opacity:.85;pointer-events:none}
+  .c1{top:10px;left:10px;border-right:0;border-bottom:0}
+  .c2{top:10px;right:10px;border-left:0;border-bottom:0}
+  .c3{bottom:10px;left:10px;border-right:0;border-top:0}
+  .c4{bottom:10px;right:10px;border-left:0;border-top:0}
+
+  .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+  button,.filelabel{
+    font:inherit;font-size:.95rem;border-radius:10px;border:1px solid var(--line);
+    background:var(--card2);color:var(--fg);padding:11px 14px;cursor:pointer;display:inline-block;
+    -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  }
+  button.primary{background:var(--accent-dim);border-color:#3f8c62;color:#eafff3;font-weight:600}
+  button:disabled{opacity:.45;cursor:default}
+  input[type=file]{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+
+  .inputrow{display:flex;gap:12px;align-items:center;margin-top:14px}
+  .inputrow canvas{width:92px;height:92px;border-radius:8px;border:1px solid var(--line);background:#000;flex:0 0 auto}
+  .inputrow .hint{color:var(--dim);font-size:.82rem}
+  .mini{padding:7px 10px;font-size:.85rem}
+
+  .top{font-size:1.5rem;font-weight:700;margin:0 0 2px}
+  .top small{font-size:.85rem;font-weight:500;color:var(--dim);margin-left:8px}
+  ol{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:10px}
+  li{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:baseline}
+  li .name{font-weight:600}
+  li .val{font-variant-numeric:tabular-nums;color:var(--dim)}
+  li .bar{grid-column:1/-1;height:9px;background:var(--card2);border-radius:99px;overflow:hidden}
+  li .bar i{display:block;height:100%;width:0;background:var(--accent-dim);border-radius:99px;transition:width .18s linear}
+  li.lead .val{color:var(--fg)}
+  li.lead .bar i{background:var(--accent)}
+  .meta{color:var(--dim);font-size:.8rem;margin-top:12px}
+
+  #status{border-left:3px solid var(--accent);padding:10px 12px;font-size:.92rem;margin:0 0 14px;background:var(--card);border-radius:0 var(--radius) var(--radius) 0}
+  #status.error{border-left-color:var(--err)}
+  #status.warn{border-left-color:var(--warn)}
+  #status code{word-break:break-all}
+
+  .qr{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .qr svg{width:168px;height:168px;background:#fff;border-radius:10px;padding:6px;flex:0 0 auto}
+  .qr .side{flex:1 1 180px;min-width:170px}
+  .qr .side p{margin:0 0 8px;font-size:.92rem}
+  .qr a{color:var(--accent);word-break:break-all;text-decoration:underline;text-underline-offset:3px;font-size:.92rem}
+  .foot{color:var(--dim);font-size:.78rem;margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Leaf Classifier</h1>
+  <p class="sub">Live classification in the browser with ONNX Runtime Web. The video never leaves the phone.</p>
+
+  <div id="status" role="status"><span id="statusText">Loading…</span></div>
+
+  <section>
+    <h2>Camera</h2>
+    <div class="stage">
+      <video id="video" playsinline muted autoplay></video>
+      <img id="photoPreview" alt="Uploaded photo">
+      <div class="idle" id="idleMsg">Tap <strong>&nbsp;Start camera&nbsp;</strong> and point the rear camera at a leaf.</div>
+      <div class="corner c1"></div><div class="corner c2"></div>
+      <div class="corner c3"></div><div class="corner c4"></div>
+    </div>
+    <div class="btns">
+      <button id="startBtn" class="primary" disabled>Start camera</button>
+      <button id="stopBtn" disabled>Stop</button>
+      <label class="filelabel" for="fileInput">Upload photo</label>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+    <div class="inputrow">
+      <canvas id="thumb" width="96" height="96" aria-label="The exact image fed to the model"></canvas>
+      <div class="hint">
+        Exactly what the model sees: the central square of the frame, resized to
+        <span id="sizeTxt">96×96</span>.
+        <div style="margin-top:8px">
+          <button id="rotBtn" class="mini">Rotate input</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Probabilities</h2>
+    <p class="top" id="topPred">—</p>
+    <ol id="probs"></ol>
+    <p class="meta" id="perf">Waiting for the first inference.</p>
+  </section>
+
+  <section>
+    <h2>Model</h2>
+    <p class="meta" id="modelMeta">Loading <code>model_info.json</code>…</p>
+  </section>
+
+  <section>
+    <h2>Open this page on your phone</h2>
+    <div class="qr">
+      <div id="qrBox" aria-label="QR code linking to this page"></div>
+      <div class="side">
+        <p><strong>Scan with the phone's camera</strong> to open the leaf classifier, then tap <em>Start camera</em>.</p>
+        <a id="qrLink" href="#">https://…</a>
+        <p class="foot" id="qrNote">QR code drawn by this page's own encoder (no external QR service), pointing at its GitHub&nbsp;Pages address.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ------------------------------------------------------------------ *
+ * A self-contained QR encoder: byte mode, error-correction level M,
+ * versions 1-10. The page draws its own code, so no QR service is used.
+ * ------------------------------------------------------------------ */
+var QR = (function () {
+  // version -> [total codewords, EC codewords per block,
+  //             group-1 blocks, group-1 data codewords, group-2 blocks, group-2 data codewords]
+  // (ISO/IEC 18004 Table 9, error-correction level M)
+  var SPECS = {
+    1:  [26,  10, 1, 16, 0, 0],
+    2:  [44,  16, 1, 28, 0, 0],
+    3:  [70,  26, 1, 44, 0, 0],
+    4:  [100, 18, 2, 32, 0, 0],
+    5:  [134, 24, 2, 43, 0, 0],
+    6:  [172, 16, 4, 27, 0, 0],
+    7:  [196, 18, 4, 31, 0, 0],
+    8:  [242, 22, 2, 38, 2, 39],
+    9:  [292, 22, 3, 36, 2, 37],
+    10: [346, 26, 4, 43, 1, 44]
+  };
+  var ALIGN = { 1:[], 2:[6,18], 3:[6,22], 4:[6,26], 5:[6,30], 6:[6,34],
+                7:[6,22,38], 8:[6,24,42], 9:[6,26,46], 10:[6,28,50] };
+  var FORMAT_INFO_MASK = 0b101010000010010;
+  var G15 = 0b10100110111;          // BCH generator for the format information
+  var G18 = 0b1111100100101;        // BCH generator for the version information
+
+  var EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  (function () {
+    var x = 1;
+    for (var i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 0x100) x ^= 0x11d; }
+    for (var j = 255; j < 512; j++) EXP[j] = EXP[j - 255];
+  })();
+  function gmul(a, b) { return (a === 0 || b === 0) ? 0 : EXP[LOG[a] + LOG[b]]; }
+  function bitLen(n) { var c = 0; while (n !== 0) { c++; n >>>= 1; } return c; }
+  function bch(data, poly, shift) {
+    var d = (data >>> 0) << shift, pLen = bitLen(poly);
+    while (bitLen(d) - pLen >= 0) d ^= poly << (bitLen(d) - pLen);
+    return ((data << shift) | d) >>> 0;
+  }
+
+  function polyMul(a, b) {
+    var r = [];
+    for (var i = 0; i < a.length + b.length - 1; i++) r.push(0);
+    for (var i = 0; i < a.length; i++)
+      for (var j = 0; j < b.length; j++) r[i + j] ^= gmul(a[i], b[j]);
+    return r;
+  }
+  function rsEncode(data, ecLen) {
+    var gen = [1];
+    for (var i = 0; i < ecLen; i++) gen = polyMul(gen, [1, EXP[i]]);
+    var res = [];
+    for (var i = 0; i < ecLen; i++) res.push(0);
+    for (var k = 0; k < data.length; k++) {
+      var factor = data[k] ^ res[0];
+      res.shift(); res.push(0);
+      if (factor !== 0) for (var i = 0; i < ecLen; i++) res[i] ^= gmul(gen[i + 1], factor);
+    }
+    return res;
+  }
+
+  function toUtf8(text) {
+    var out = [];
+    for (var i = 0; i < text.length; i++) {
+      var c = text.charCodeAt(i);
+      if (c < 0x80) out.push(c);
+      else if (c < 0x800) out.push(0xc0 | (c >> 6), 0x80 | (c & 63));
+      else out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    }
+    return out;
+  }
+  function pickVersion(len) {
+    for (var v = 1; v <= 10; v++) {
+      var s = SPECS[v], capacity = s[2] * s[3] + s[4] * s[5];
+      var header = v <= 9 ? 2 : 3;                 // 4-bit mode + 8- or 16-bit length
+      if (len + header <= capacity) return v;
+    }
+    throw new Error('text too long for the built-in QR encoder (versions 1-10)');
+  }
+
+  function bitStream(bytes, version) {
+    var s = SPECS[version];
+    var totalData = s[2] * s[3] + s[4] * s[5], ecLen = s[1];
+    var bits = [];
+    function push(value, len) { for (var i = len - 1; i >= 0; i--) bits.push((value >> i) & 1); }
+    push(4, 4);                                     // 0100 = byte mode
+    push(bytes.length, version <= 9 ? 8 : 16);
+    for (var i = 0; i < bytes.length; i++) push(bytes[i], 8);
+    var capacityBits = totalData * 8;
+    for (var t = 0; t < 4 && bits.length < capacityBits; t++) bits.push(0);   // terminator
+    while (bits.length % 8 !== 0) bits.push(0);                                // pad to a byte
+    var cw = [];
+    for (var b = 0; b < bits.length; b += 8) {
+      var v = 0;
+      for (var j = 0; j < 8; j++) v = (v << 1) | bits[b + j];
+      cw.push(v);
+    }
+    for (var pads = [0xec, 0x11], p = 0; cw.length < totalData; p++) cw.push(pads[p % 2]);
+
+    var idx = 0;
+    function take(count, size) {
+      var arr = [];
+      for (var i = 0; i < count; i++) { arr.push(cw.slice(idx, idx + size)); idx += size; }
+      return arr;
+    }
+    var dataBlocks = take(s[2], s[3]).concat(take(s[4], s[5]));
+    var ecBlocks = [];
+    for (var bi = 0; bi < dataBlocks.length; bi++) ecBlocks.push(rsEncode(dataBlocks[bi], ecLen));
+
+    var codewords = [], maxLen = 0;
+    for (var i = 0; i < dataBlocks.length; i++) maxLen = Math.max(maxLen, dataBlocks[i].length);
+    for (var d = 0; d < maxLen; d++)                    // data codewords, interleaved
+      for (var b2 = 0; b2 < dataBlocks.length; b2++)
+        if (d < dataBlocks[b2].length) codewords.push(dataBlocks[b2][d]);
+    for (var e = 0; e < ecLen; e++)                     // then the EC codewords
+      for (var e2 = 0; e2 < ecBlocks.length; e2++) codewords.push(ecBlocks[e2][e]);
+
+    var stream = [];
+    for (var c = 0; c < codewords.length; c++)
+      for (var k = 7; k >= 0; k--) stream.push((codewords[c] >> k) & 1);
+    return stream;
+  }
+
+  var MASKS = [
+    function (r, c) { return (r + c) % 2 === 0; },
+    function (r)    { return r % 2 === 0; },
+    function (r, c) { return c % 3 === 0; },
+    function (r, c) { return (r + c) % 3 === 0; },
+    function (r, c) { return (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0; },
+    function (r, c) { return (r * c) % 2 + (r * c) % 3 === 0; },
+    function (r, c) { return ((r * c) % 2 + (r * c) % 3) % 2 === 0; },
+    function (r, c) { return ((r * c) % 3 + (r + c) % 2) % 2 === 0; }
+  ];
+
+  function penalty(m, size) {
+    var score = 0;
+    function runScore(len) { if (len >= 5) score += 3 + (len - 5); }
+    var foundLike = [[1,0,1,1,1,0,1,0,0,0,0], [0,0,0,0,1,0,1,1,1,0,1]];
+    function scan(get, count) {
+      var run = 1, i, p, k;
+      for (i = 1; i <= count; i++) {
+        var cur = i < count ? get(i) : -1;
+        if (cur === get(i - 1)) run++; else { runScore(run); run = 1; }
+      }
+      for (var s = 0; s + 11 <= count; s++)
+        for (p = 0; p < 2; p++) {
+          var ok = true;
+          for (k = 0; k < 11; k++) if (get(s + k) !== foundLike[p][k]) { ok = false; break; }
+          if (ok) score += 40;
+        }
+    }
+    for (var row = 0; row < size; row++) {
+      (function (r) {
+        scan(function (c) { return m[r][c]; }, size);
+        scan(function (rr) { return m[rr][r]; }, size);
+      })(row);
+    }
+    for (var i = 0; i < size - 1; i++)
+      for (var j = 0; j < size - 1; j++) {
+        var v = m[i][j];
+        if (v === m[i][j + 1] && v === m[i + 1][j] && v === m[i + 1][j + 1]) score += 3;
+      }
+    var dark = 0;
+    for (var a = 0; a < size; a++) for (var b = 0; b < size; b++) dark += m[a][b];
+    score += 10 * Math.floor(Math.abs(dark * 100 / (size * size) - 50) / 5);
+    return score;
+  }
+
+  function build(text, forcedMask) {
+    var bytes = toUtf8(text);
+    var version = pickVersion(bytes.length);
+    var size = version * 4 + 17;
+    var stream = bitStream(bytes, version);
+    if (stream.length > size * size) throw new Error('internal error: too many bits');
+
+    function grid(fill) {
+      var g = [];
+      for (var i = 0; i < size; i++) g.push(new Int8Array(size).fill(fill));
+      return g;
+    }
+
+    function drawFunctionPatterns(mod, reserved) {
+      function set(r, c, v) {
+        if (r < 0 || r >= size || c < 0 || c >= size) return;
+        mod[r][c] = v; reserved[r][c] = 1;
+      }
+      function finder(row, col) {
+        for (var r = -1; r <= 7; r++)
+          for (var c = -1; c <= 7; c++) {
+            var inside = r >= 0 && r <= 6 && c >= 0 && c <= 6;
+            var dark = inside && (r === 0 || r === 6 || c === 0 || c === 6 ||
+                                  (r >= 2 && r <= 4 && c >= 2 && c <= 4));
+            set(row + r, col + c, dark ? 1 : 0);
+          }
+      }
+      finder(0, 0); finder(size - 7, 0); finder(0, size - 7);
+      for (var i = 8; i < size - 8; i++) {              // timing patterns
+        set(6, i, i % 2 === 0 ? 1 : 0);
+        set(i, 6, i % 2 === 0 ? 1 : 0);
+      }
+      var pos = ALIGN[version];
+      for (var a = 0; a < pos.length; a++)
+        for (var b = 0; b < pos.length; b++) {
+          var last = pos.length - 1;
+          if ((a === 0 && b === 0) || (a === 0 && b === last) || (a === last && b === 0)) continue;
+          for (var dr = -2; dr <= 2; dr++)
+            for (var dc = -2; dc <= 2; dc++) {
+              var ring = Math.max(Math.abs(dr), Math.abs(dc));
+              set(pos[a] + dr, pos[b] + dc, ring === 1 ? 0 : 1);
+            }
+        }
+      for (var f = 0; f <= 8; f++) {                    // format information, top-left copy
+        if (f === 6) continue;
+        set(8, f, 0); set(f, 8, 0);
+      }
+      for (var g = 0; g < 8; g++) {                     // format information, other two corners
+        set(8, size - 8 + g, 0);
+        set(size - 8 + g, 8, 0);
+      }
+      set(size - 8, 8, 1);                              // the always-dark module
+      if (version >= 7) {                               // version information blocks
+        for (var vr = 0; vr < 6; vr++)
+          for (var vc = 0; vc < 3; vc++) {
+            set(vr, size - 11 + vc, 0);
+            set(size - 11 + vc, vr, 0);
+          }
+      }
+    }
+
+    function writeFormat(mod, mask) {
+      var bits = (bch(mask, G15, 10) ^ FORMAT_INFO_MASK) >>> 0;   // level M is 00
+      function bit(i) { return (bits >>> i) & 1; }
+      for (var i = 0; i < 15; i++) {                    // copy 1 around the top-left finder
+        var v = bit(i);
+        if (i < 6) mod[i][8] = v;
+        else if (i < 8) mod[i + 1][8] = v;
+        else if (i === 8) mod[8][7] = v;
+        else mod[8][14 - i] = v;
+      }
+      for (var j = 0; j < 15; j++) {                    // copies 2 and 3
+        var w = bit(j);
+        if (j < 8) mod[8][size - 1 - j] = w;
+        else mod[size - 15 + j][8] = w;
+      }
+      mod[size - 8][8] = 1;
+    }
+
+    function writeVersion(mod) {
+      if (version < 7) return;
+      var bits = bch(version, G18, 12);
+      for (var i = 0; i < 18; i++) {
+        var v = (bits >>> i) & 1;
+        mod[Math.floor(i / 3)][size - 11 + (i % 3)] = v;
+        mod[size - 11 + (i % 3)][Math.floor(i / 3)] = v;
+      }
+    }
+
+    function placeData(mod, reserved, mask) {
+      var idx = 0, upward = true, maskFn = MASKS[mask];
+      for (var col = size - 1; col > 0; col -= 2) {
+        if (col === 6) col = 5;                          // step over the vertical timing column
+        for (var i = 0; i < size; i++) {
+          var row = upward ? size - 1 - i : i;
+          for (var n = 0; n < 2; n++) {
+            var c = col - n;
+            if (reserved[row][c]) continue;
+            var bit = idx < stream.length ? stream[idx++] : 0;
+            mod[row][c] = bit ^ (maskFn(row, c) ? 1 : 0);
+          }
+        }
+        upward = !upward;
+      }
+    }
+
+    var masks = (forcedMask === undefined || forcedMask === null) ? [0,1,2,3,4,5,6,7] : [forcedMask];
+    var best = null, bestScore = Infinity;
+    for (var m = 0; m < masks.length; m++) {
+      var mod = grid(0), reserved = grid(0);
+      drawFunctionPatterns(mod, reserved);
+      placeData(mod, reserved, masks[m]);
+      writeFormat(mod, masks[m]);
+      writeVersion(mod);
+      var score = penalty(mod, size);
+      if (score < bestScore) { bestScore = score; best = mod; }
+    }
+    return { version: version, size: size, modules: best };
+  }
+
+  return { build: build };
+})();
+
+/* Draw a QR code as crisp inline SVG, including its 4-module quiet zone. */
+function renderQrCode(target, linkEl, url, debugTarget) {
+  linkEl.href = url;
+  linkEl.textContent = url;
+  try {
+    var qr = QR.build(url);
+    var quiet = 4, dim = qr.size + quiet * 2, d = '';
+    for (var r = 0; r < qr.size; r++)
+      for (var c = 0; c < qr.size; c++)
+        if (qr.modules[r][c]) d += 'M' + (c + quiet) + ' ' + (r + quiet) + 'h1v1h-1z';
+    target.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + dim + ' ' + dim +
+      '" shape-rendering="crispEdges" role="img" aria-label="QR code for ' + url + '">' +
+      '<rect width="' + dim + '" height="' + dim + '" fill="#ffffff"/>' +
+      '<path d="' + d + '" fill="#000000"/></svg>';
+    if (debugTarget) {
+      debugTarget.qr = {
+        version: qr.version, size: qr.size, url: url, quiet: quiet, dim: dim,
+        matrix: qr.modules.map(function (row) { return Array.prototype.join.call(row, ''); })
+      };
+    }
+  } catch (e) {
+    target.innerHTML = '<p style="color:#ff8f8f">QR code could not be drawn: ' +
+                       String(e.message || e) + '</p>';
+  }
+}
+</script>
+
+<script>
+'use strict';
+
+/* ------------------------------------------------------------------ *
+ * Everything the model needs is read from model_info.json.
+ * ------------------------------------------------------------------ */
+// onnxruntime-web is taken from a CDN. 1.17 and earlier abort on this model, so
+// the newest build is tried first and older builds are kept as fallbacks in case
+// a given mobile browser cannot run the newest WebAssembly binary.
+var ORT_VERSIONS = ['1.22.0', '1.20.1', '1.19.2'];
+var MODEL_URL = './leaf_model.onnx';
+var INFO_URL  = './model_info.json';
+var APP_URL   = 'https://eneokat13.github.io/mlr-ex08/';  // the public GitHub Pages address
+var MIN_INTERVAL_MS = 250;                                 // pacing of the live loop
+
+var state = {
+  info: null, session: null, inputName: '', outputName: '', ortVersion: '',
+  stream: null, running: false,
+  source: 'none',   // 'none' | 'camera' | 'photo'
+  rotation: 0       // manual correction (degrees) of the camera feed's orientation
+};
+
+function $(id) { return document.getElementById(id); }
+var video = $('video'), photoPreview = $('photoPreview'), thumb = $('thumb');
+var thumbCtx = thumb.getContext('2d', { willReadFrequently: true });
+var work = document.createElement('canvas');
+var workCtx = work.getContext('2d', { willReadFrequently: true });
+
+function setStatus(html, kind) {
+  $('status').className = kind || '';
+  $('statusText').innerHTML = html;
+}
+function showError(title, err) {
+  var detail = err ? (err.message || String(err)) : '';
+  setStatus(title + (detail ? ' <code>' + escapeHtml(detail) + '</code>' : ''), 'error');
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+  });
+}
+
+function buildRows(classes) {
+  var html = '';
+  for (var i = 0; i < classes.length; i++) {
+    html += '<li id="row-' + i + '" data-class="' + escapeHtml(classes[i]) + '">' +
+              '<span class="name">' + escapeHtml(classes[i]) + '</span>' +
+              '<span class="val">—</span>' +
+              '<span class="bar"><i></i></span>' +
+            '</li>';
+  }
+  $('probs').innerHTML = html;
+}
+
+function showProbs(probs, ms) {
+  var classes = state.info.classes, best = 0, i;
+  for (i = 1; i < probs.length; i++) if (probs[i] > probs[best]) best = i;
+
+  for (i = 0; i < classes.length; i++) {
+    var row = $('row-' + i), pct = probs[i] * 100;
+    row.querySelector('.val').textContent =
+        pct >= 0.1 ? pct.toFixed(1) + ' %' : (pct > 0 ? pct.toExponential(1) + ' %' : '0 %');
+    row.querySelector('.bar i').style.width = pct.toFixed(3) + '%';
+    row.dataset.prob = probs[i].toFixed(6);
+    if (row.classList) {
+      if (i === best) row.classList.add('lead'); else row.classList.remove('lead');
+    }
+  }
+  $('topPred').innerHTML = escapeHtml(classes[best]) +
+    '<small>' + (probs[best] * 100).toFixed(1) + ' %</small>';
+  $('perf').textContent =
+    (state.source === 'camera' ? 'Live camera' : 'Photo') + ' · inference ' +
+    ms.toFixed(0) + ' ms · input 1×3×' + state.info.input_size + '×' + state.info.input_size;
+
+  window.leafDebug = { classes: classes.slice(), probs: probs.slice(),
+                       source: state.source, ms: ms };
+}
+
+/* ------------------------------------------------------------------ *
+ * Preprocessing: central square -> input_size -> 0..1 -> per-channel
+ * (x - mean) / std -> planar CHW float32, shaped 1 x 3 x size x size.
+ * ------------------------------------------------------------------ */
+function preprocess(srcEl, srcW, srcH, rotationDeg) {
+  var S = state.info.input_size;
+  var side = Math.min(srcW, srcH);
+  var sx = (srcW - side) / 2, sy = (srcH - side) / 2;
+
+  if (work.width !== S || work.height !== S) { work.width = S; work.height = S; }
+  var rot = (((rotationDeg || 0) % 360) + 360) % 360;
+  workCtx.save();
+  workCtx.setTransform(1, 0, 0, 1, 0, 0);
+  workCtx.clearRect(0, 0, S, S);
+  if (rot !== 0) {                       // rotating about the centre keeps a square a square
+    workCtx.translate(S / 2, S / 2);
+    workCtx.rotate(rot * Math.PI / 180);
+    workCtx.translate(-S / 2, -S / 2);
+  }
+  workCtx.drawImage(srcEl, sx, sy, side, side, 0, 0, S, S);
+  workCtx.restore();
+
+  var rgba = workCtx.getImageData(0, 0, S, S).data;
+  var mean = state.info.mean, std = state.info.std;
+  var n = S * S, data = new Float32Array(3 * n);
+  for (var i = 0; i < n; i++) {
+    var o = i * 4;
+    data[i]         = (rgba[o]     / 255 - mean[0]) / std[0];
+    data[n + i]     = (rgba[o + 1] / 255 - mean[1]) / std[1];
+    data[2 * n + i] = (rgba[o + 2] / 255 - mean[2]) / std[2];
+  }
+
+  thumbCtx.setTransform(1, 0, 0, 1, 0, 0);
+  thumbCtx.clearRect(0, 0, thumb.width, thumb.height);
+  thumbCtx.drawImage(work, 0, 0);
+  return new ort.Tensor('float32', data, [1, 3, S, S]);
+}
+
+function softmax(logits) {
+  var arr = Array.prototype.slice.call(logits);
+  var max = Math.max.apply(null, arr);
+  var exps = arr.map(function (v) { return Math.exp(v - max); });
+  var sum = exps.reduce(function (a, b) { return a + b; }, 0);
+  return exps.map(function (v) { return v / sum; });
+}
+
+/* One inference at a time; calls that arrive during a run are queued behind it. */
+var queue = Promise.resolve();
+function classify(srcEl, srcW, srcH, rotationDeg) {
+  function run() {
+    if (!state.session) return Promise.resolve();
+    var tensor = preprocess(srcEl, srcW, srcH, rotationDeg);
+    var feed = {}, t0 = performance.now();
+    feed[state.inputName] = tensor;
+    return state.session.run(feed).then(function (out) {
+      showProbs(softmax(out[state.outputName].data), performance.now() - t0);
+    });
+  }
+  queue = queue.then(run, run);
+  return queue;
+}
+function reportFailure(err) {
+  showError('Inference failed:', err);
+  stopCamera();
+}
+
+/* ------------------------------------------------------------------ *
+ * Live camera
+ * ------------------------------------------------------------------ */
+function deviceAngle() {
+  return (window.screen && screen.orientation && typeof screen.orientation.angle === 'number')
+    ? screen.orientation.angle : 0;
+}
+// iPhone rear-camera frames arrive in the sensor's landscape orientation, so the
+// upright picture is turned relative to the frame. JavaScript cannot detect which
+// way, so "Rotate input" is there to correct it by eye using the preview above.
+function cameraRotation() { return (90 + deviceAngle() + state.rotation) % 360; }
+
+function startCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setStatus('This browser cannot open the camera (no <code>getUserMedia</code>). Use <strong>Upload photo</strong>, or open the page in a browser with camera support.', 'warn');
+    return;
+  }
+  if (!window.isSecureContext) {
+    setStatus('The camera needs a secure (HTTPS) page. Use <strong>Upload photo</strong> here.', 'warn');
+    return;
+  }
+  $('startBtn').disabled = true;
+  setStatus('Requesting the rear camera…');
+  showStage('video');
+
+  var attempts = [
+    { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+    { video: { facingMode: 'environment' } },
+    { video: true }
+  ];
+  function attempt(i) {
+    if (i >= attempts.length) {
+      $('startBtn').disabled = false;
+      setStatus('The camera could not be started. Check the camera permission for this site and try again, or use <strong>Upload photo</strong>.', 'error');
+      return;
+    }
+    navigator.mediaDevices.getUserMedia(attempts[i]).then(function (stream) {
+      state.stream = stream;
+      state.source = 'camera';
+      video.setAttribute('playsinline', '');
+      video.muted = true;
+      video.srcObject = stream;
+      // iOS only lets a video start playing from a user gesture — this is inside the tap.
+      return video.play().then(function () {
+        state.running = true;
+        $('stopBtn').disabled = false;
+        setStatus('Classifying live. Hold a leaf inside the frame.', '');
+        loop();
+      });
+    }).catch(function (err) {
+      if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError' || err.name === 'NotReadableError')) {
+        $('startBtn').disabled = false;
+        showStage('idle');
+        setStatus('The camera could not be opened (' + escapeHtml(err.name) +
+                  '). Allow camera access for this site and tap <em>Start camera</em> again, or use <strong>Upload photo</strong>.', 'error');
+      } else {
+        attempt(i + 1);
+      }
+    });
+  }
+  attempt(0);
+}
+
+function showStage(which) {
+  $('idleMsg').style.display = (which === 'idle') ? 'flex' : 'none';
+  photoPreview.style.display = (which === 'photo') ? 'block' : 'none';
+  video.style.visibility = (which === 'video') ? 'visible' : 'hidden';
+}
+
+function stopCamera() {
+  state.running = false;
+  if (state.stream) {
+    var tracks = state.stream.getVideoTracks();
+    for (var i = 0; i < tracks.length; i++) tracks[i].stop();
+    state.stream = null;
+  }
+  video.srcObject = null;
+  $('stopBtn').disabled = true;
+  $('startBtn').disabled = !state.session;
+  if (state.source === 'camera') {
+    state.source = 'none';
+    if (photoPreview.style.display !== 'block') showStage('idle');
+  }
+}
+
+function nextFrame() {
+  return new Promise(function (resolve) {
+    if (typeof video.requestVideoFrameCallback === 'function') {
+      video.requestVideoFrameCallback(function () { resolve(); });
+    } else {
+      setTimeout(resolve, 200);
+    }
+  });
+}
+function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+async function loop() {
+  while (state.running && state.source === 'camera') {
+    var t0 = performance.now();
+    if (video.readyState >= 2 && video.videoWidth > 0) {
+      await classify(video, video.videoWidth, video.videoHeight, cameraRotation()).catch(reportFailure);
+      if (!state.running) return;
+    }
+    await nextFrame();
+    var idle = MIN_INTERVAL_MS - (performance.now() - t0);
+    if (idle > 0) await wait(idle);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Photo upload (fallback that needs no camera permission)
+ * ------------------------------------------------------------------ */
+function loadBitmap(file) {
+  if (window.createImageBitmap) {
+    return createImageBitmap(file, { imageOrientation: 'from-image' });
+  }
+  return new Promise(function (resolve, reject) {
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function () { resolve(img); };
+    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('could not decode ' + file.name)); };
+    img.src = url;
+  });
+}
+
+$('fileInput').addEventListener('change', function (ev) {
+  var file = ev.target.files && ev.target.files[0];
+  ev.target.value = '';
+  if (!file) return;
+  if (!state.session) { setStatus('The model is still loading — one moment, then try again.', 'warn'); return; }
+  stopCamera();
+  state.source = 'photo';
+  setStatus('Classifying <strong>' + escapeHtml(file.name) + '</strong>…');
+  loadBitmap(file).then(function (bmp) {
+    if (photoPreview.src) URL.revokeObjectURL(photoPreview.src);
+    photoPreview.src = URL.createObjectURL(file);
+    showStage('photo');
+    var w = bmp.width || bmp.naturalWidth, h = bmp.height || bmp.naturalHeight;
+    return classify(bmp, w, h, 0).then(function () {
+      if (bmp.close) bmp.close();
+      setStatus('Result for <strong>' + escapeHtml(file.name) + '</strong> above. Tap <em>Start camera</em> to classify live.', '');
+    });
+  }).catch(function (e) { showError('That image could not be read:', e); });
+});
+
+$('startBtn').addEventListener('click', startCamera);
+$('stopBtn').addEventListener('click', function () {
+  stopCamera();
+  showStage(photoPreview.src ? 'photo' : 'idle');
+});
+$('rotBtn').addEventListener('click', function () {
+  state.rotation = (state.rotation + 90) % 360;
+  setStatus('Model input rotated ' + state.rotation + '° — tap again for the next quarter turn.');
+});
+
+/* ------------------------------------------------------------------ *
+ * Startup
+ * ------------------------------------------------------------------ */
+function describeModel() {
+  var i = state.info;
+  $('sizeTxt').textContent = i.input_size + '×' + i.input_size;
+  if (thumb.width !== i.input_size) { thumb.width = i.input_size; thumb.height = i.input_size; }
+  $('modelMeta').innerHTML =
+    '<code>leaf_model.onnx</code> · ' + i.classes.length + ' classes: ' + escapeHtml(i.classes.join(', ')) +
+    '<br>Input <code>1×3×' + i.input_size + '×' + i.input_size +
+    '</code> — central square crop, RGB scaled to 0–1, then per channel mean <code>[' +
+    i.mean.join(', ') + ']</code> and std <code>[' + i.std.join(', ') + ']</code>; the logits are turned into probabilities with softmax.' +
+    '<br><span id="runtimeLine"></span>';
+}
+function describeRuntime() {
+  $('runtimeLine').textContent =
+    'Runtime: ONNX Runtime Web ' + state.ortVersion + ', WebAssembly (simd, single-threaded — ' +
+    'what iPhone Safari supports).';
+}
+
+/* ------------------------------------------------------------------ *
+ * Runtime loading: fetch onnxruntime-web from the CDN and open a session,
+ * falling back to an older build if this browser cannot run the newest one.
+ * ------------------------------------------------------------------ */
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = function () { reject(new Error('could not fetch ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+
+async function openSession(onAttempt) {
+  var lastError = null;
+  for (var i = 0; i < ORT_VERSIONS.length; i++) {
+    var version = ORT_VERSIONS[i];
+    var base = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@' + version + '/dist/';
+    try {
+      if (state.ortVersion !== version) await loadScript(base + 'ort.min.js');
+      if (!window.ort) throw new Error('the CDN did not provide the ort global');
+      // iPhones have no cross-origin-isolated shared memory here, so pin the
+      // single-threaded wasm build and its file locations.
+      ort.env.wasm.numThreads = 1;
+      ort.env.wasm.wasmPaths = base;
+      var session = await ort.InferenceSession.create(MODEL_URL, {
+        graphOptimizationLevel: 'all',
+        executionProviders: ['wasm']
+      });
+      state.ortVersion = version;
+      return session;
+    } catch (e) {
+      lastError = e;
+      state.ortVersion = '';
+      if (i < ORT_VERSIONS.length - 1) {
+        onAttempt('Build ' + version + ' did not work here, trying ' + ORT_VERSIONS[i + 1] + '…');
+      }
+    }
+  }
+  throw lastError;
+}
+
+function noteIfNotCanonical() {
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || !location.hostname) return;
+  var here = location.origin + location.pathname;
+  if (here !== APP_URL) {
+    $('qrNote').innerHTML = 'This copy of the page is served from <code>' + escapeHtml(here) +
+      '</code>; the QR code and the link point at <code>' + escapeHtml(APP_URL) + '</code>.';
+  }
+}
+
+async function init() {
+  renderQrCode($('qrBox'), $('qrLink'), APP_URL, window);
+  noteIfNotCanonical();
+
+  try {
+    var res = await fetch(INFO_URL, { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    state.info = await res.json();
+  } catch (e) {
+    showError('Could not load <code>model_info.json</code>:', e);
+    return;
+  }
+  buildRows(state.info.classes);
+  describeModel();
+
+  setStatus('Downloading the model and the wasm runtime — happens once, then the browser caches them…');
+  try {
+    state.session = await openSession(function (msg) { setStatus(msg); });
+  } catch (e) {
+    showError('This browser could not run the model (iPhone needs Safari 16.4 or newer for WebAssembly ' +
+              'SIMD; recent Chrome and Edge work too). The rest of the page still works: ', e);
+    return;
+  }
+  describeRuntime();
+  state.inputName = state.session.inputNames[0];
+  state.outputName = state.session.outputNames[0];
+  $('startBtn').disabled = false;
+  setStatus('Ready. Tap <strong>Start camera</strong> for the rear camera, or <strong>Upload photo</strong>. ' +
+            'Input <code>' + escapeHtml(state.inputName) + '</code> → <code>' + escapeHtml(state.outputName) + '</code>.', '');
+}
+
+init();
+</script>
+</body>
+</html>
