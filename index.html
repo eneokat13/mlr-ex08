@@ -69,8 +69,8 @@
   #status code{word-break:break-all}
 
   .qr{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-  .qr svg{width:168px;height:168px;background:#fff;border-radius:10px;padding:6px;flex:0 0 auto}
-  .qr .side{flex:1 1 180px;min-width:170px}
+  .qr svg{width:162px;height:162px;background:#fff;border-radius:10px;padding:6px;flex:0 0 auto}
+  .qr .side{flex:1 1 145px;min-width:145px}
   .qr .side p{margin:0 0 8px;font-size:.92rem}
   .qr a{color:var(--accent);word-break:break-all;text-decoration:underline;text-underline-offset:3px;font-size:.92rem}
   .foot{color:var(--dim);font-size:.78rem;margin-top:10px}
@@ -515,7 +515,9 @@ function showProbs(probs, ms) {
   for (i = 0; i < classes.length; i++) {
     var row = $('row-' + i), pct = probs[i] * 100;
     row.querySelector('.val').textContent =
-        pct >= 0.1 ? pct.toFixed(1) + ' %' : (pct > 0 ? pct.toExponential(1) + ' %' : '0 %');
+        pct >= 0.1 ? pct.toFixed(1) + ' %'
+      : pct >= 0.005 ? pct.toFixed(2) + ' %'
+      : (pct > 0 ? pct.toExponential(1) + ' %' : '0 %');
     row.querySelector('.bar i').style.width = pct.toFixed(3) + '%';
     row.dataset.prob = probs[i].toFixed(6);
     if (row.classList) {
