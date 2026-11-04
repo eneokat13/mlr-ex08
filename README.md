@@ -70,8 +70,9 @@ permission. `check_image.jpg` is a known test image; uploading it must reproduce
 | chestnut | 0.0006078 | 0.0006078 |
 | maple | 0.0002912 | 0.0002912 |
 
-Largest deviation 1.5 × 10⁻⁶, which is JPEG-decoder and float32 rounding; a
-PyTorch/ONNX-Runtime reference run in Python reproduces the same numbers.
+Largest deviation 1.5 × 10⁻⁶, which is JPEG-decoder and float32 rounding. The same
+numbers come out of an independent reference run in Python (ONNX Runtime + Pillow), and
+the table above was measured in the deployed page under both Chromium and WebKit.
 
 ## Files
 
@@ -88,5 +89,6 @@ PyTorch/ONNX-Runtime reference run in Python reproduces the same numbers.
   non-leaf input, so it always answers with one of them.
 * A photo taken through the iOS shutter carries EXIF orientation and is handled; the
   live stream is not automatically rotated for the reasons above.
-* Inference is single-threaded wasm (roughly 10–60 ms per frame on a recent phone),
-  paced to at most four frames per second to keep the battery and fan quiet.
+* Inference is single-threaded WebAssembly, paced to at most four frames per second to
+  keep the battery and fan quiet. Measured inference time was 4–14 ms per frame on a
+  desktop CPU; it is not measured on a phone from here, so expect it to be slower there.
