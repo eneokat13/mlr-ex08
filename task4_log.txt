@@ -1,0 +1,295 @@
+camera-like validation set: 120 images, crop+rotation+colour, fixed seed 7
+torch 2.14.0+cpu on cpu — 11 variant(s) to run, 2 already in task4_results.csv
+
+########## [1/11] variant 2 ##########
+
+=== + geometric augmentation (Task 3d) | seed 0 | 15 epochs | 700 train images ===
+epoch  1  training loss 1.2770  validation accuracy 0.533  loss 1.0499
+epoch  2  training loss 0.9301  validation accuracy 0.675  loss 0.7636
+epoch  3  training loss 0.8166  validation accuracy 0.650  loss 0.7756
+epoch  4  training loss 0.8279  validation accuracy 0.708  loss 0.6859
+epoch  5  training loss 0.7612  validation accuracy 0.792  loss 0.5998
+epoch  6  training loss 0.7000  validation accuracy 0.792  loss 0.5606
+epoch  7  training loss 0.6454  validation accuracy 0.842  loss 0.5364
+epoch  8  training loss 0.5654  validation accuracy 0.708  loss 0.7896
+epoch  9  training loss 0.6597  validation accuracy 0.817  loss 0.5361
+epoch 10  training loss 0.6085  validation accuracy 0.842  loss 0.5024
+epoch 11  training loss 0.5271  validation accuracy 0.675  loss 0.7460
+epoch 12  training loss 0.5652  validation accuracy 0.858  loss 0.4543
+epoch 13  training loss 0.5246  validation accuracy 0.867  loss 0.4170
+epoch 14  training loss 0.5058  validation accuracy 0.775  loss 0.5601
+epoch 15  training loss 0.5003  validation accuracy 0.875  loss 0.4400
+best validation loss 0.4170 in epoch 13, trained in 30 s
+saved 3/13 rows to task4_results.csv and task4_results.txt
+
+########## [2/11] variant 3 ##########
+
+=== + colour jitter on top | seed 0 | 15 epochs | 700 train images ===
+epoch  1  training loss 1.3370  validation accuracy 0.467  loss 1.1532
+epoch  2  training loss 1.1853  validation accuracy 0.567  loss 0.9881
+epoch  3  training loss 1.0351  validation accuracy 0.492  loss 0.9492
+epoch  4  training loss 1.1132  validation accuracy 0.642  loss 0.8806
+epoch  5  training loss 1.0182  validation accuracy 0.683  loss 0.8534
+epoch  6  training loss 0.9562  validation accuracy 0.633  loss 0.8371
+epoch  7  training loss 0.9452  validation accuracy 0.725  loss 0.7665
+epoch  8  training loss 0.9087  validation accuracy 0.733  loss 0.7415
+epoch  9  training loss 0.8635  validation accuracy 0.717  loss 0.7230
+epoch 10  training loss 0.8100  validation accuracy 0.742  loss 0.6860
+epoch 11  training loss 0.7928  validation accuracy 0.742  loss 0.7140
+epoch 12  training loss 0.7272  validation accuracy 0.775  loss 0.6414
+epoch 13  training loss 0.7341  validation accuracy 0.733  loss 0.6166
+epoch 14  training loss 0.7156  validation accuracy 0.592  loss 0.8595
+epoch 15  training loss 0.7242  validation accuracy 0.725  loss 0.6567
+best validation loss 0.6166 in epoch 13, trained in 35 s
+saved 4/13 rows to task4_results.csv and task4_results.txt
+
+########## [3/11] variant 4 ##########
+
+=== + global average pooling | seed 0 | 15 epochs | 700 train images ===
+epoch  1  training loss 1.3357  validation accuracy 0.358  loss 1.2378
+epoch  2  training loss 1.1480  validation accuracy 0.558  loss 0.9644
+epoch  3  training loss 0.9104  validation accuracy 0.533  loss 0.8794
+epoch  4  training loss 0.8876  validation accuracy 0.683  loss 0.7806
+epoch  5  training loss 0.8132  validation accuracy 0.667  loss 0.7567
+epoch  6  training loss 0.7876  validation accuracy 0.725  loss 0.7203
+epoch  7  training loss 0.7917  validation accuracy 0.650  loss 0.7476
+epoch  8  training loss 0.7649  validation accuracy 0.683  loss 0.7078
+epoch  9  training loss 0.7586  validation accuracy 0.633  loss 0.7700
+epoch 10  training loss 0.7754  validation accuracy 0.658  loss 0.7393
+epoch 11  training loss 0.7528  validation accuracy 0.675  loss 0.7193
+epoch 12  training loss 0.7450  validation accuracy 0.742  loss 0.6710
+epoch 13  training loss 0.7616  validation accuracy 0.717  loss 0.6840
+epoch 14  training loss 0.7373  validation accuracy 0.708  loss 0.6808
+epoch 15  training loss 0.7181  validation accuracy 0.692  loss 0.7202
+best validation loss 0.6710 in epoch 12, trained in 24 s
+saved 5/13 rows to task4_results.csv and task4_results.txt
+
+########## [4/11] variant 5 ##########
+
+=== + dropout 0.25 | seed 0 | 15 epochs | 700 train images ===
+epoch  1  training loss 1.3146  validation accuracy 0.458  loss 1.1117
+epoch  2  training loss 1.0213  validation accuracy 0.633  loss 0.8611
+epoch  3  training loss 0.8528  validation accuracy 0.717  loss 0.6588
+epoch  4  training loss 0.7635  validation accuracy 0.750  loss 0.5985
+epoch  5  training loss 0.7362  validation accuracy 0.800  loss 0.5970
+epoch  6  training loss 0.6791  validation accuracy 0.783  loss 0.5965
+epoch  7  training loss 0.6329  validation accuracy 0.792  loss 0.5913
+epoch  8  training loss 0.5519  validation accuracy 0.817  loss 0.5301
+epoch  9  training loss 0.5180  validation accuracy 0.742  loss 0.6452
+epoch 10  training loss 0.4976  validation accuracy 0.817  loss 0.4885
+epoch 11  training loss 0.4445  validation accuracy 0.817  loss 0.4810
+epoch 12  training loss 0.4379  validation accuracy 0.817  loss 0.4827
+epoch 13  training loss 0.4126  validation accuracy 0.825  loss 0.4640
+epoch 14  training loss 0.3552  validation accuracy 0.808  loss 0.5486
+epoch 15  training loss 0.3429  validation accuracy 0.808  loss 0.5380
+best validation loss 0.4640 in epoch 13, trained in 24 s
+saved 6/13 rows to task4_results.csv and task4_results.txt
+
+########## [5/11] variant 6 ##########
+
+=== + AdamW weight decay 1e-4 | seed 0 | 15 epochs | 700 train images ===
+epoch  1  training loss 1.2928  validation accuracy 0.625  loss 1.0425
+epoch  2  training loss 0.9505  validation accuracy 0.642  loss 0.8623
+epoch  3  training loss 0.7699  validation accuracy 0.725  loss 0.7187
+epoch  4  training loss 0.7112  validation accuracy 0.767  loss 0.5829
+epoch  5  training loss 0.6525  validation accuracy 0.783  loss 0.5893
+epoch  6  training loss 0.5799  validation accuracy 0.767  loss 0.6018
+epoch  7  training loss 0.5672  validation accuracy 0.817  loss 0.5695
+epoch  8  training loss 0.4734  validation accuracy 0.808  loss 0.5156
+epoch  9  training loss 0.3815  validation accuracy 0.750  loss 0.6207
+epoch 10  training loss 0.3785  validation accuracy 0.792  loss 0.5384
+epoch 11  training loss 0.3683  validation accuracy 0.775  loss 0.5706
+epoch 12  training loss 0.2930  validation accuracy 0.817  loss 0.5241
+epoch 13  training loss 0.2674  validation accuracy 0.825  loss 0.5839
+epoch 14  training loss 0.2388  validation accuracy 0.800  loss 0.6948
+epoch 15  training loss 0.2323  validation accuracy 0.817  loss 0.6131
+best validation loss 0.5156 in epoch 8, trained in 24 s
+saved 7/13 rows to task4_results.csv and task4_results.txt
+
+########## [6/11] variant 7 ##########
+
+=== + label smoothing 0.1 | seed 0 | 15 epochs | 700 train images ===
+epoch  1  training loss 1.3081  validation accuracy 0.633  loss 1.0484
+epoch  2  training loss 1.0480  validation accuracy 0.633  loss 0.8653
+epoch  3  training loss 0.9096  validation accuracy 0.708  loss 0.7413
+epoch  4  training loss 0.8531  validation accuracy 0.783  loss 0.5786
+epoch  5  training loss 0.7936  validation accuracy 0.767  loss 0.5893
+epoch  6  training loss 0.7354  validation accuracy 0.808  loss 0.5454
+epoch  7  training loss 0.7020  validation accuracy 0.800  loss 0.5595
+epoch  8  training loss 0.6725  validation accuracy 0.792  loss 0.5824
+epoch  9  training loss 0.6422  validation accuracy 0.775  loss 0.5910
+epoch 10  training loss 0.6150  validation accuracy 0.808  loss 0.5952
+epoch 11  training loss 0.5820  validation accuracy 0.808  loss 0.5912
+epoch 12  training loss 0.5550  validation accuracy 0.817  loss 0.5722
+epoch 13  training loss 0.5346  validation accuracy 0.783  loss 0.5677
+epoch 14  training loss 0.5167  validation accuracy 0.808  loss 0.6019
+epoch 15  training loss 0.5115  validation accuracy 0.817  loss 0.5475
+best validation loss 0.5454 in epoch 6, trained in 25 s
+saved 8/13 rows to task4_results.csv and task4_results.txt
+
+########## [7/11] variant 8 ##########
+
+=== transfer: frozen backbone, head only | seed 0 | 15 epochs | 700 train images ===
+epoch  1  training loss 1.0318  validation accuracy 0.625  loss 0.8450
+epoch  2  training loss 0.5057  validation accuracy 0.700  loss 0.6771
+epoch  3  training loss 0.3795  validation accuracy 0.700  loss 0.6459
+epoch  4  training loss 0.3055  validation accuracy 0.717  loss 0.6597
+epoch  5  training loss 0.2326  validation accuracy 0.792  loss 0.5266
+epoch  6  training loss 0.2579  validation accuracy 0.708  loss 0.7174
+epoch  7  training loss 0.2265  validation accuracy 0.750  loss 0.5675
+epoch  8  training loss 0.1518  validation accuracy 0.775  loss 0.5360
+epoch  9  training loss 0.1405  validation accuracy 0.725  loss 0.6714
+epoch 10  training loss 0.1404  validation accuracy 0.833  loss 0.4409
+epoch 11  training loss 0.1286  validation accuracy 0.775  loss 0.5092
+epoch 12  training loss 0.0990  validation accuracy 0.800  loss 0.5274
+epoch 13  training loss 0.0702  validation accuracy 0.808  loss 0.5190
+epoch 14  training loss 0.0768  validation accuracy 0.825  loss 0.4947
+epoch 15  training loss 0.0712  validation accuracy 0.825  loss 0.4857
+best validation loss 0.4409 in epoch 10, trained in 14 s
+saved 9/13 rows to task4_results.csv and task4_results.txt
+
+########## [8/11] variant 9 ##########
+
+=== transfer: fine-tune whole network | seed 0 | 15 epochs | 700 train images ===
+epoch  1  training loss 0.8169  validation accuracy 0.800  loss 0.4904
+epoch  2  training loss 0.2055  validation accuracy 0.917  loss 0.2215
+epoch  3  training loss 0.1032  validation accuracy 0.867  loss 0.4031
+epoch  4  training loss 0.0844  validation accuracy 0.850  loss 0.4357
+epoch  5  training loss 0.0446  validation accuracy 0.875  loss 0.4385
+epoch  6  training loss 0.0385  validation accuracy 0.908  loss 0.4827
+epoch  7  training loss 0.0557  validation accuracy 0.908  loss 0.4106
+epoch  8  training loss 0.0516  validation accuracy 0.900  loss 0.3030
+epoch  9  training loss 0.0429  validation accuracy 0.825  loss 0.7681
+epoch 10  training loss 0.1032  validation accuracy 0.875  loss 0.4610
+epoch 11  training loss 0.1072  validation accuracy 0.867  loss 0.6501
+epoch 12  training loss 0.0847  validation accuracy 0.900  loss 0.4253
+epoch 13  training loss 0.0355  validation accuracy 0.883  loss 0.4501
+epoch 14  training loss 0.0453  validation accuracy 0.892  loss 0.6464
+epoch 15  training loss 0.0580  validation accuracy 0.933  loss 0.7322
+best validation loss 0.2215 in epoch 2, trained in 36 s
+saved 10/13 rows to task4_results.csv and task4_results.txt
+
+########## [9/11] variant 10 ##########
+
+=== transfer + aug + colour + cosine, 30 ep | seed 0 | 30 epochs | 700 train images ===
+epoch  1  training loss 0.9125  validation accuracy 0.667  loss 0.6636
+epoch  2  training loss 0.4415  validation accuracy 0.692  loss 0.7084
+epoch  3  training loss 0.3467  validation accuracy 0.875  loss 0.3533
+epoch  4  training loss 0.3760  validation accuracy 0.858  loss 0.4485
+epoch  5  training loss 0.3092  validation accuracy 0.833  loss 0.5415
+epoch  6  training loss 0.2684  validation accuracy 0.875  loss 0.4366
+epoch  7  training loss 0.2846  validation accuracy 0.892  loss 0.3594
+epoch  8  training loss 0.2144  validation accuracy 0.883  loss 0.2797
+epoch  9  training loss 0.1948  validation accuracy 0.883  loss 0.3123
+epoch 10  training loss 0.2489  validation accuracy 0.875  loss 0.3107
+epoch 11  training loss 0.1977  validation accuracy 0.867  loss 0.3670
+epoch 12  training loss 0.1752  validation accuracy 0.858  loss 0.3994
+epoch 13  training loss 0.1482  validation accuracy 0.883  loss 0.3361
+epoch 14  training loss 0.1761  validation accuracy 0.875  loss 0.3279
+epoch 15  training loss 0.1590  validation accuracy 0.867  loss 0.3519
+epoch 16  training loss 0.1241  validation accuracy 0.875  loss 0.3577
+epoch 17  training loss 0.1203  validation accuracy 0.883  loss 0.3740
+epoch 18  training loss 0.1218  validation accuracy 0.858  loss 0.3796
+epoch 19  training loss 0.0940  validation accuracy 0.883  loss 0.3582
+epoch 20  training loss 0.1147  validation accuracy 0.867  loss 0.3707
+epoch 21  training loss 0.0963  validation accuracy 0.883  loss 0.3611
+epoch 22  training loss 0.1055  validation accuracy 0.892  loss 0.3514
+epoch 23  training loss 0.0990  validation accuracy 0.892  loss 0.3381
+epoch 24  training loss 0.0858  validation accuracy 0.875  loss 0.3680
+epoch 25  training loss 0.0799  validation accuracy 0.883  loss 0.3652
+epoch 26  training loss 0.0759  validation accuracy 0.875  loss 0.3571
+epoch 27  training loss 0.0655  validation accuracy 0.883  loss 0.3566
+epoch 28  training loss 0.0683  validation accuracy 0.883  loss 0.3587
+epoch 29  training loss 0.0612  validation accuracy 0.883  loss 0.3582
+epoch 30  training loss 0.0834  validation accuracy 0.883  loss 0.3594
+best validation loss 0.2797 in epoch 8, trained in 99 s
+saved 11/13 rows to task4_results.csv and task4_results.txt
+
+########## [10/11] variant 11 ##########
+
+=== scratch combo: aug+colour+GAP+dropout+AdamW+LS, 30 ep | seed 0 | 30 epochs | 700 train images ===
+epoch  1  training loss 1.3631  validation accuracy 0.317  loss 1.2473
+epoch  2  training loss 1.2471  validation accuracy 0.500  loss 1.0170
+epoch  3  training loss 1.1553  validation accuracy 0.575  loss 0.9764
+epoch  4  training loss 1.1468  validation accuracy 0.575  loss 0.9623
+epoch  5  training loss 1.1371  validation accuracy 0.558  loss 0.9557
+epoch  6  training loss 1.1026  validation accuracy 0.550  loss 0.9742
+epoch  7  training loss 1.1208  validation accuracy 0.525  loss 0.9692
+epoch  8  training loss 1.1002  validation accuracy 0.542  loss 0.9343
+epoch  9  training loss 1.1130  validation accuracy 0.592  loss 0.9264
+epoch 10  training loss 1.1186  validation accuracy 0.542  loss 0.9455
+epoch 11  training loss 1.0760  validation accuracy 0.558  loss 0.9619
+epoch 12  training loss 1.1205  validation accuracy 0.592  loss 0.9437
+epoch 13  training loss 1.0614  validation accuracy 0.608  loss 0.9097
+epoch 14  training loss 1.0712  validation accuracy 0.600  loss 0.9606
+epoch 15  training loss 1.0663  validation accuracy 0.658  loss 0.9182
+epoch 16  training loss 1.0651  validation accuracy 0.633  loss 0.8592
+epoch 17  training loss 1.0571  validation accuracy 0.625  loss 0.8772
+epoch 18  training loss 1.0491  validation accuracy 0.567  loss 0.9015
+epoch 19  training loss 1.0302  validation accuracy 0.625  loss 0.8387
+epoch 20  training loss 1.0398  validation accuracy 0.625  loss 0.8743
+epoch 21  training loss 1.0440  validation accuracy 0.567  loss 0.9252
+epoch 22  training loss 1.0420  validation accuracy 0.592  loss 0.8517
+epoch 23  training loss 1.0244  validation accuracy 0.583  loss 0.8370
+epoch 24  training loss 1.0081  validation accuracy 0.633  loss 0.7876
+epoch 25  training loss 1.0607  validation accuracy 0.608  loss 0.8523
+epoch 26  training loss 1.0149  validation accuracy 0.600  loss 0.8890
+epoch 27  training loss 0.9847  validation accuracy 0.625  loss 0.7889
+epoch 28  training loss 0.9831  validation accuracy 0.650  loss 0.7954
+epoch 29  training loss 1.0021  validation accuracy 0.642  loss 0.8277
+epoch 30  training loss 0.9823  validation accuracy 0.617  loss 0.9044
+best validation loss 0.7876 in epoch 24, trained in 67 s
+saved 12/13 rows to task4_results.csv and task4_results.txt
+
+########## [11/11] variant 12 ##########
+
+=== transfer combo + best-epoch weights kept | seed 0 | 30 epochs | 700 train images ===
+epoch  1  training loss 0.9136  validation accuracy 0.692  loss 0.6889
+epoch  2  training loss 0.4429  validation accuracy 0.725  loss 0.7500
+epoch  3  training loss 0.3482  validation accuracy 0.883  loss 0.3006
+epoch  4  training loss 0.3850  validation accuracy 0.817  loss 0.6076
+epoch  5  training loss 0.2933  validation accuracy 0.808  loss 0.5319
+epoch  6  training loss 0.2411  validation accuracy 0.867  loss 0.3831
+epoch  7  training loss 0.2711  validation accuracy 0.850  loss 0.3630
+epoch  8  training loss 0.2083  validation accuracy 0.850  loss 0.4139
+epoch  9  training loss 0.1858  validation accuracy 0.892  loss 0.3461
+epoch 10  training loss 0.2359  validation accuracy 0.833  loss 0.3791
+epoch 11  training loss 0.1768  validation accuracy 0.858  loss 0.3534
+epoch 12  training loss 0.1728  validation accuracy 0.867  loss 0.4404
+epoch 13  training loss 0.1558  validation accuracy 0.883  loss 0.3316
+epoch 14  training loss 0.1499  validation accuracy 0.892  loss 0.3204
+epoch 15  training loss 0.1684  validation accuracy 0.867  loss 0.3593
+epoch 16  training loss 0.1308  validation accuracy 0.850  loss 0.3705
+epoch 17  training loss 0.1419  validation accuracy 0.875  loss 0.3589
+epoch 18  training loss 0.1107  validation accuracy 0.867  loss 0.3269
+epoch 19  training loss 0.1013  validation accuracy 0.883  loss 0.3261
+epoch 20  training loss 0.0945  validation accuracy 0.900  loss 0.3594
+epoch 21  training loss 0.0897  validation accuracy 0.892  loss 0.3595
+epoch 22  training loss 0.1234  validation accuracy 0.900  loss 0.3538
+epoch 23  training loss 0.0885  validation accuracy 0.908  loss 0.3497
+epoch 24  training loss 0.0904  validation accuracy 0.908  loss 0.3686
+epoch 25  training loss 0.0934  validation accuracy 0.908  loss 0.3765
+epoch 26  training loss 0.0744  validation accuracy 0.908  loss 0.3704
+epoch 27  training loss 0.0698  validation accuracy 0.908  loss 0.3704
+epoch 28  training loss 0.0680  validation accuracy 0.908  loss 0.3689
+epoch 29  training loss 0.0702  validation accuracy 0.908  loss 0.3694
+epoch 30  training loss 0.0944  validation accuracy 0.908  loss 0.3699
+best validation loss 0.3006 in epoch 3, trained in 92 s
+saved 13/13 rows to task4_results.csv and task4_results.txt
+
+variant                                              tr loss val fin val best cam fin cam best best ep time s
+--------------------------------------------------------------------------------------------------------
+B0 baseline (Task 3, no augmentation)                 0.2126   0.817    0.808   0.600    0.600      10     26
++ geometric augmentation (Task 3d)                    0.5003   0.875    0.867   0.658    0.625      13     30
++ colour jitter on top                                0.7242   0.725    0.733   0.675    0.692      13     35
++ global average pooling                              0.7181   0.692    0.742   0.575    0.550      12     24
++ dropout 0.25                                        0.3429   0.808    0.825   0.608    0.600      13     24
++ AdamW weight decay 1e-4                             0.2323   0.817    0.808   0.617    0.600       8     24
++ label smoothing 0.1                                 0.5115   0.817    0.808   0.558    0.625       6     25
+transfer: frozen backbone, head only                  0.0712   0.825    0.833   0.675    0.692      10     14
+transfer: fine-tune whole network                     0.0580   0.933    0.917   0.783    0.758       2     36
+transfer + aug + colour + cosine, 30 ep               0.0834   0.883    0.883   0.900    0.917       8     99
+scratch combo: aug+colour+GAP+dropout+AdamW+LS, 30 ep  0.9823   0.617    0.633   0.550    0.625      24     67
+transfer combo + best-epoch weights kept              0.0944   0.908    0.883   0.900    0.883       3     92
+B0 baseline, seed 1 (noise check)                     0.2380   0.800    0.808   0.583    0.617      11     26
+summary written to task4_results.txt (13 of 13 variants)

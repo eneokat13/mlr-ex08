@@ -1,0 +1,18 @@
+Task 4 — leaf classifier improvements, seed 0 unless noted, batch 32, Adam/AdamW lr 1e-3, 96x96 images
+val = standard validation set, cam = camera-like set (crop+rotation+colour, fixed seed 7), best = weights of the best validation epoch
+
+variant                                              tr loss val fin val best cam fin cam best best ep time s
+--------------------------------------------------------------------------------------------------------
+B0 baseline (Task 3, no augmentation)                 0.2126   0.817    0.808   0.600    0.600      10     26
++ geometric augmentation (Task 3d)                    0.5003   0.875    0.867   0.658    0.625      13     30
++ colour jitter on top                                0.7242   0.725    0.733   0.675    0.692      13     35
++ global average pooling                              0.7181   0.692    0.742   0.575    0.550      12     24
++ dropout 0.25                                        0.3429   0.808    0.825   0.608    0.600      13     24
++ AdamW weight decay 1e-4                             0.2323   0.817    0.808   0.617    0.600       8     24
++ label smoothing 0.1                                 0.5115   0.817    0.808   0.558    0.625       6     25
+transfer: frozen backbone, head only                  0.0712   0.825    0.833   0.675    0.692      10     14
+transfer: fine-tune whole network                     0.0580   0.933    0.917   0.783    0.758       2     36
+transfer + aug + colour + cosine, 30 ep               0.0834   0.883    0.883   0.900    0.917       8     99
+scratch combo: aug+colour+GAP+dropout+AdamW+LS, 30 ep  0.9823   0.617    0.633   0.550    0.625      24     67
+transfer combo + best-epoch weights kept              0.0944   0.908    0.883   0.900    0.883       3     92
+B0 baseline, seed 1 (noise check)                     0.2380   0.800    0.808   0.583    0.617      11     26
